@@ -22,7 +22,7 @@ export default function Login() {
 
       if (result) {
         Alert.alert('로그인 성공', '환영합니다!');
-        router.replace('/(tabs)'); // 로그인 후 메인 화면으로 이동
+        router.replace('/(tabs)/diary'); // 로그인 후 메인 화면으로 이동
       }
     } catch (error) {
       Alert.alert('로그인 실패', '이메일 또는 비밀번호를 확인해주세요.');
