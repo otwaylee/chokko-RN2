@@ -8,80 +8,91 @@ import {
   Image,
 } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
+import * as SecureStore from 'expo-secure-store';
 
-import axios from 'axios';
+import apiClient from '@/api/apiClient';
 import CustomBarChart from '@/components/diary/BarChart';
 import CustomLineChart from '@/components/diary/LineChart';
 
-const BASE_URL = process.env.EXPO_PUBLIC_API_BASE_URL;
-
-interface RecordsData {
+// ✅ API 응답 타입 지정
+interface GraphData {
   graph_data: number;
   graph_date?: string;
   graph_time?: string;
-  photo_date?: string;
   graphDataId?: number;
+}
+
+interface PhotoData {
   photo_url?: string;
   photoType_title?: string;
+  photo_date?: string;
   content?: string;
   photoDataId?: number;
 }
 
-export default function DiaryDetailScreen() {
+interface ApiResponse {
+  graphDataList?: GraphData[];
+  photoDataList?: PhotoData[];
+}
+
+export default function DiaryDetail() {
   const { title } = useLocalSearchParams(); // URL에서 title 가져오기
   const router = useRouter();
 
   const [recordType, setRecordType] = useState<'GRAPH' | 'PHOTO'>();
   const [recordId, setRecordId] = useState<number>();
   const [unit, setUnit] = useState<string>('');
-  const [records, setRecords] = useState<RecordsData[]>([]);
+  const [records, setRecords] = useState<GraphData[] | PhotoData[]>([]);
   const [labels, setLabels] = useState<string[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [chartType, setChartType] = useState<'BAR' | 'LINE'>('BAR');
 
   useEffect(() => {
-    const storedUserInfo = JSON.parse(localStorage.getItem('userInfo') || '{}');
-    const selectedPetId = localStorage.getItem('selectedPetId');
+    const loadUserInfo = async () => {
+      const storedUserInfo = await SecureStore.getItemAsync('userInfo');
+      const selectedPetId = await SecureStore.getItemAsync('selectedPetId');
 
-    if (!storedUserInfo || !selectedPetId) return;
+      if (!storedUserInfo || !selectedPetId) return;
 
-    const selectedPet = storedUserInfo.pets?.find(
-      (pet: { petId: number }) => String(pet.petId) === selectedPetId
-    );
-
-    if (selectedPet) {
-      const record = selectedPet.records?.find(
-        (r: { title: string }) => r.title === title
+      const parsedUserInfo = JSON.parse(storedUserInfo);
+      const selectedPet = parsedUserInfo.pets?.find(
+        (pet: { petId: number }) => String(pet.petId) === selectedPetId
       );
 
-      if (record) {
-        setRecordType(record.recordType);
-        setRecordId(record.recordId);
-        setUnit(record.unit || '');
+      if (selectedPet) {
+        const record = selectedPet.records?.find(
+          (r: { title: string }) => r.title === title
+        );
+
+        if (record) {
+          setRecordType(record.recordType);
+          setRecordId(record.recordId);
+          setUnit(record.unit || '');
+        }
       }
-    }
+    };
+
+    loadUserInfo();
   }, [title]);
 
+  // ✅ API 호출
   const fetchHistoryData = useCallback(async () => {
     if (!recordType || !recordId) return;
     setLoading(true);
 
     try {
-      const token = localStorage.getItem('token');
-      const response = await axios.get(
-        `${BASE_URL}/records/${
-          recordType === 'GRAPH' ? 'graph' : 'photo'
-        }/${recordId}`,
+      const token = await SecureStore.getItemAsync('token');
+      const response = await apiClient.get<ApiResponse>(
+        `/records/${recordType === 'GRAPH' ? 'graph' : 'photo'}/${recordId}`,
         { headers: { Authorization: `Bearer ${token}` } }
       );
 
       if (recordType === 'GRAPH' && response.data.graphDataList) {
-        const sortedData = response.data.graphDataList.sort(
-          (a: RecordsData, b: RecordsData) =>
-            a.graph_date && b.graph_date
-              ? new Date(a.graph_date).getTime() -
-                new Date(b.graph_date).getTime()
-              : 0
+        const sortedData = response.data.graphDataList.sort((a, b) =>
+          a.graph_date && b.graph_date
+            ? new Date(a.graph_date).getTime() -
+              new Date(b.graph_date).getTime()
+            : 0
         );
 
         setRecords(sortedData);
@@ -89,12 +100,11 @@ export default function DiaryDetailScreen() {
       }
 
       if (recordType === 'PHOTO' && response.data.photoDataList) {
-        const sortedData = response.data.photoDataList.sort(
-          (a: RecordsData, b: RecordsData) =>
-            a.photo_date && b.photo_date
-              ? new Date(a.photo_date).getTime() -
-                new Date(b.photo_date).getTime()
-              : 0
+        const sortedData = response.data.photoDataList.sort((a, b) =>
+          a.photo_date && b.photo_date
+            ? new Date(a.photo_date).getTime() -
+              new Date(b.photo_date).getTime()
+            : 0
         );
 
         setRecords(sortedData);
@@ -156,13 +166,17 @@ export default function DiaryDetailScreen() {
               <CustomBarChart
                 unit={unit}
                 labels={labels}
-                dataValues={records.map((record) => record.graph_data)}
+                dataValues={(records as GraphData[]).map(
+                  (record) => record.graph_data
+                )}
               />
             ) : (
               <CustomLineChart
                 unit={unit}
                 labels={labels}
-                dataValues={records.map((record) => record.graph_data)}
+                dataValues={(records as GraphData[]).map(
+                  (record) => record.graph_data
+                )}
               />
             )}
           </View>
@@ -171,7 +185,7 @@ export default function DiaryDetailScreen() {
 
       {recordType === 'PHOTO' && (
         <View className='mt-6'>
-          {records.map((record, index) => (
+          {(records as PhotoData[]).map((record, index) => (
             <TouchableOpacity
               key={index}
               onPress={() =>
