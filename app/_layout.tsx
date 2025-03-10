@@ -13,7 +13,7 @@ export default function RootLayout() {
     'Pretendard-Regular': require('@/assets/fonts/Pretendard-Regular.otf'),
   });
 
-  const { session, isLoading, checkAuth } = useAuthStore();
+  const { token, isLoading, checkAuth } = useAuthStore();
   const router = useRouter();
 
   useEffect(() => {
@@ -29,9 +29,9 @@ export default function RootLayout() {
 
   useEffect(() => {
     if (!isLoading) {
-      router.replace(session ? '/(tabs)' : '/(auth)'); // ✅ 로그인 여부에 따라 리다이렉트
+      router.replace(token ? '/(tabs)/diary' : '/(auth)'); // ✅ 로그인 여부에 따라 리다이렉트
     }
-  }, [session, isLoading]);
+  }, [token, isLoading]);
 
   if (isLoading) {
     return (
@@ -45,6 +45,7 @@ export default function RootLayout() {
     <Stack>
       <Stack.Screen name='(auth)' options={{ headerShown: false }} />
       <Stack.Screen name='(tabs)' options={{ headerShown: false }} />
+      <Stack.Screen name='+not-found' />
     </Stack>
   );
 }
