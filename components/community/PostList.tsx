@@ -55,7 +55,7 @@ const PostList = () => {
           renderItem={({ item }) => (
             <TouchableOpacity
               className='mb-4 p-4 bg-white rounded-lg shadow-md'
-              onPress={() => router.push(`/community/${item.postId}`)}>
+              onPress={() => router.push(`/(tabs)/community/${item.postId}`)}>
               <Text className='text-xl font-bold mb-2'>{item.title}</Text>
               <Text className='text-gray-600'>카테고리: {item.category}</Text>
               <Text className='text-gray-600'>
