@@ -5,6 +5,7 @@ import { useEffect } from 'react';
 import { View, ActivityIndicator } from 'react-native';
 import { useAuthStore } from '@/stores/useAuthStore';
 import '@/styles/global.css';
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
 
 SplashScreen.preventAutoHideAsync();
 
@@ -42,10 +43,12 @@ export default function RootLayout() {
   }
 
   return (
-    <Stack>
-      <Stack.Screen name='(auth)' options={{ headerShown: false }} />
-      <Stack.Screen name='(tabs)' options={{ headerShown: false }} />
-      <Stack.Screen name='+not-found' />
-    </Stack>
+    <GestureHandlerRootView style={{ flex: 1 }}>
+      <Stack>
+        <Stack.Screen name='(auth)' options={{ headerShown: false }} />
+        <Stack.Screen name='(tabs)' options={{ headerShown: false }} />
+        <Stack.Screen name='+not-found' />
+      </Stack>
+    </GestureHandlerRootView>
   );
 }
