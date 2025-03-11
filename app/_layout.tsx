@@ -5,6 +5,7 @@ import { useEffect } from 'react';
 import { View, ActivityIndicator } from 'react-native';
 import { useAuthStore } from '@/stores/useAuthStore';
 import '@/styles/global.css';
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
 
 SplashScreen.preventAutoHideAsync();
 
@@ -13,7 +14,7 @@ export default function RootLayout() {
     'Pretendard-Regular': require('@/assets/fonts/Pretendard-Regular.otf'),
   });
 
-  const { session, isLoading, checkAuth } = useAuthStore();
+  const { token, isLoading, checkAuth } = useAuthStore();
   const router = useRouter();
 
   useEffect(() => {
@@ -29,9 +30,9 @@ export default function RootLayout() {
 
   useEffect(() => {
     if (!isLoading) {
-      router.replace(session ? '/(tabs)' : '/(auth)'); // ✅ 로그인 여부에 따라 리다이렉트
+      router.replace(token ? '/(tabs)/diary' : '/(auth)'); // ✅ 로그인 여부에 따라 리다이렉트
     }
-  }, [session, isLoading]);
+  }, [token, isLoading]);
 
   if (isLoading) {
     return (
@@ -42,9 +43,12 @@ export default function RootLayout() {
   }
 
   return (
-    <Stack>
-      <Stack.Screen name='(auth)' options={{ headerShown: false }} />
-      <Stack.Screen name='(tabs)' options={{ headerShown: false }} />
-    </Stack>
+    <GestureHandlerRootView style={{ flex: 1 }}>
+      <Stack>
+        <Stack.Screen name='(auth)' options={{ headerShown: false }} />
+        <Stack.Screen name='(tabs)' options={{ headerShown: false }} />
+        <Stack.Screen name='+not-found' />
+      </Stack>
+    </GestureHandlerRootView>
   );
 }

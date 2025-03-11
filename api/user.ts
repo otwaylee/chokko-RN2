@@ -52,24 +52,40 @@ export async function userSignUp(
   username: string,
   email: string,
   password: string,
-  gender: string,
+  genderValue: string,
   date_of_birth: string
 ) {
   try {
+    console.log('회원가입 요청 데이터:', {
+      username,
+      email,
+      password,
+      gender: genderValue,
+      date_of_birth,
+    });
+
     const response = await apiClient.post('/users/register', {
       username,
       email,
       password,
-      gender,
+      gender: genderValue,
       date_of_birth,
       created_at: new Date().toISOString(),
       is_active: true,
     });
 
-    console.log('회원가입 성공:', response.data);
+    console.log('회원가입 성공:', response);
+    console.log('회원가입 응답 데이터:', response.data);
     return response.data;
-  } catch (error) {
+  } catch (error: any) {
     console.error('회원가입 실패:', error);
+
+    if (error.response) {
+      console.error('서버 응답 데이터:', error.response.data);
+      console.error('서버 응답 상태 코드:', error.response.status);
+      console.error('서버 응답 헤더:', error.response.headers);
+    }
+
     Alert.alert('회원가입 실패', '회원가입을 진행할 수 없습니다.');
     return null;
   }
@@ -80,6 +96,7 @@ export async function checkEmailDuplicate(email: string) {
   try {
     const response = await apiClient.get('/users/check-email', {
       params: { email },
+      headers: {},
     });
 
     return response.data; // { isDuplicate: boolean }

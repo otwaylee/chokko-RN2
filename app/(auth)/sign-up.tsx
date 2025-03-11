@@ -20,7 +20,8 @@ export default function SignUp() {
   const [year, setYear] = useState('');
   const [month, setMonth] = useState('');
   const [day, setDay] = useState('');
-  const [gender, setGender] = useState('');
+  const [genderLabel, setGenderLabel] = useState<string | null>(null); // 화면에 표시되는 값
+  const [genderValue, setGenderValue] = useState<string | null>(null);
 
   const [isEmailChecked, setIsEmailChecked] = useState(false);
   const [passwordError, setPasswordError] = useState<string | null>(null);
@@ -59,7 +60,7 @@ export default function SignUp() {
       !year ||
       !month ||
       !day ||
-      !gender
+      !genderValue
     ) {
       Alert.alert('오류', '모든 필드를 입력해 주세요.');
       return;
@@ -80,7 +81,14 @@ export default function SignUp() {
       const formattedDay = day.padStart(2, '0');
       const date_of_birth = `${year}-${formattedMonth}-${formattedDay}`;
 
-      await userSignUp(username, email, password, gender, date_of_birth);
+      const data = await userSignUp(
+        username,
+        email,
+        password,
+        genderValue,
+        date_of_birth
+      );
+
       Alert.alert('성공', '회원가입 성공!');
       router.push('/(auth)/login');
     } catch (error) {
@@ -194,29 +202,35 @@ export default function SignUp() {
             <Text className='text-lg mb-3'>성별</Text>
             <View className='flex-row justify-between mt-2'>
               <TouchableOpacity
-                onPress={() => setGender('남성')}
+                onPress={() => {
+                  setGenderLabel('남성'); // UI에는 "남성" 표시
+                  setGenderValue('M'); // 서버에는 "M" 보내기
+                }}
                 className={`p-3 flex items-center ${
-                  gender === '남성'
+                  genderLabel === '남성'
                     ? 'bg-gray-300'
                     : 'bg-gray-100 border border-gray-300'
                 } rounded-lg w-48`}>
                 <Text
                   className={`${
-                    gender === '남성' ? 'text-white' : 'text-black'
+                    genderLabel === '남성' ? 'text-white' : 'text-black'
                   }`}>
                   남성
                 </Text>
               </TouchableOpacity>
               <TouchableOpacity
-                onPress={() => setGender('여성')}
+                onPress={() => {
+                  setGenderLabel('여성'); // UI에는 "남성" 표시
+                  setGenderValue('F'); // 서버에는 "M" 보내기
+                }}
                 className={`p-3 flex items-center ${
-                  gender === '여성'
+                  genderLabel === '여성'
                     ? 'bg-gray-300'
                     : 'bg-gray-100 border border-gray-300'
                 } rounded-lg w-48`}>
                 <Text
                   className={`${
-                    gender === '여성' ? 'text-white' : 'text-black'
+                    genderLabel === '여성' ? 'text-white' : 'text-black'
                   }`}>
                   여성
                 </Text>
@@ -266,7 +280,7 @@ export default function SignUp() {
                 !year ||
                 !month ||
                 !day ||
-                !gender
+                !genderValue
               ) {
                 Alert.alert('오류', '모든 필드를 입력해 주세요.');
                 return;
@@ -291,7 +305,7 @@ export default function SignUp() {
                   username,
                   email,
                   password,
-                  gender,
+                  genderValue,
                   date_of_birth
                 );
                 Alert.alert('성공', '회원가입 성공!');
