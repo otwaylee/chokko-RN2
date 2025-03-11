@@ -53,7 +53,7 @@ const MyPage: React.FC = () => {
   }, [activeTab]);
 
   return (
-    <View className='flex-1 bg-white p-4'>
+    <View className='flex-1 bg-white px-4 pt-14'>
       {/* 🔹 헤더 (마이페이지 & 로그아웃 버튼) */}
       <View className='flex-row justify-between items-center mb-4'>
         <Text className='text-2xl font-bold'>마이 페이지</Text>
